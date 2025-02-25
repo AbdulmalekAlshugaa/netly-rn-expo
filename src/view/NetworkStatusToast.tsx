@@ -10,7 +10,7 @@ const TOAST_HEIGHT = STATUS_BAR_HEIGHT + 34;
 
 const COLOR_DISCONNECTED = '#F44336'; // Red for disconnected
 const COLOR_CONNECTED = '#4CAF50'; // Green for restored connection
-const COLOR_SLOW_CONNECTION = '#FFC107'; // Yellow for slow connection
+const COLOR_SLOW_CONNECTION = '#FFC107'; // Yellow for only slow connection
 
 export enum NetworkStatus {
     NO_CONNECTION = 'No Connection',
