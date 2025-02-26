@@ -47,7 +47,7 @@ var DISMISS_TIMEOUT = 3000;
 var TOAST_HEIGHT = STATUS_BAR_HEIGHT + 34;
 var COLOR_DISCONNECTED = '#F44336'; // Red for disconnected
 var COLOR_CONNECTED = '#4CAF50'; // Green for restored connection
-var COLOR_SLOW_CONNECTION = '#FFC107'; // Yellow for slow connection
+var COLOR_SLOW_CONNECTION = '#FFC107'; // Yellow for only slow connection
 var NetworkStatus;
 (function (NetworkStatus) {
     NetworkStatus["NO_CONNECTION"] = "No Connection";

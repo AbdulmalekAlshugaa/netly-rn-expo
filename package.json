@@ -1,7 +1,7 @@
 {
   "name": "netly-rn-expo",
   "version": "1.1.0",
-  "description": "A placeholder package for React Native/Expo",
+  "description": "A  React Native package to get network information and display it in a user-friendly way.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -12,7 +12,8 @@
     "react-native",
     "expo",
     "network",
-    "placeholder"
+    "networkInfo",
+    "netInfo"
   ],
   "author": "Your Name",
   "license": "MIT",
