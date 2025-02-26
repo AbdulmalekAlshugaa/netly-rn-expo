@@ -1,5 +1,5 @@
 import React from "react";
-import { NetworkStatus } from "../constants/NetLy";
+import { Text, View } from "react-native";
 interface NetworkStatusToastProps {
     disconnectedColor?: string;
     connectedColor?: string;
@@ -7,7 +7,11 @@ interface NetworkStatusToastProps {
     toastHeight?: number;
     animationDuration?: number;
     dismissTimeout?: number;
-    renderContent?: (networkState: NetworkStatus) => React.ReactNode;
+    messageNoConnection?: string;
+    messageConnected?: string;
+    messageSlowConnection?: string;
+    contentStyle?: View["props"]["style"];
+    toastTextStyle?: Text["props"]["style"];
     debug?: boolean;
 }
 declare const NetworkStatusToast: React.FC<NetworkStatusToastProps>;
