@@ -2,12 +2,9 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import usePreviousValue from './usePreviousValue';
+import { NetworkStatus } from '../constants/NetLy';
 
-export enum NetworkStatus {
-    NO_CONNECTION = 'No Connection',
-    CONNECTED = 'Connected',
-    SLOW_CONNECTION = 'Slow Connection',
-}
+
 
 const DEBUG_NETWORK_STATUS_STATE_MACHINE = false;
 
@@ -72,67 +69,74 @@ const useNetworkStatus = (): [NetworkStatus, NetworkStatus | undefined] => {
 
     // Measure the time it takes to reach the service portal
     useEffect(() => {
-        if (networkState === NetworkStatus.CONNECTED || networkState === NetworkStatus.SLOW_CONNECTION) {
-            // skip if the network check is already active
-            if (intervalId.current !== undefined) {
-                logPollCheckpoints('Skip scheduling poll');
+        if (
+            networkState !== NetworkStatus.CONNECTED &&
+            networkState !== NetworkStatus.SLOW_CONNECTION
+        ) {
+            logPollCheckpoints('Clear poll due to no connection');
+            cleanupPoll();
+            return;
+        }
+    
+        // Skip scheduling if already polling
+        if (intervalId.current !== undefined) {
+            logPollCheckpoints('Skip scheduling poll');
+            return;
+        }
+    
+        logPollCheckpoints('Scheduling poll');
+    
+        const pollNetworkStatus = () => {
+            if (AppState.currentState !== 'active') {
+                logPollCheckpoints('Skipping poll, app is in background');
                 return;
             }
-
-            logPollCheckpoints('Scheduling poll');
-            intervalId.current = setInterval(() => {
-                // Do not have to poll when app is not in foreground
-                if (AppState.currentState === 'active') {
-                    const requestStartTime = Date.now();
-                    logPollCheckpoints(`Start poll request`);
-                    fetch('https://clients3.google.com/generate_204', {
-                        headers: {
-                            'Cache-Control': 'no-cache, no-store, must-revalidate',
-                            Pragma: 'no-cache',
-                            Expires: '0',
-                        },
-                    })
-                        .then(response => {
-                            // Since it is a promise, request can be started before app go into background but response received when the app is in background state
-                            // TODO: verify if the callback actually gets called when the app is in background
-                            if (AppState.currentState === 'active') {
-                                // Since it is a promise, networkState can change in between the request, important to guard this again
-                                if (
-                                    response.status === 204 &&
-                                    (networkState === NetworkStatus.CONNECTED ||
-                                        networkState === NetworkStatus.SLOW_CONNECTION)
-                                ) {
-                                    const requestEndtime = Date.now();
-                                    const requestDuration = requestEndtime - requestStartTime;
-                                    logPollCheckpoints(`Poll success, duration: ${requestDuration}ms`);
-                                    setServicePortalDuration(requestDuration);
-                                } else {
-                                    logPollCheckpoints(
-                                        `Poll failed with status: ${response.status} and network status: ${networkState}`,
-                                    );
-                                    setServicePortalDuration(Infinity);
-                                }
-                            } else {
-                                logPollCheckpoints('Poll result ignored due to app in background');
-                            }
-                        })
-                        .catch(() => {
-                            logPollCheckpoints('Poll error-ed out');
-                            setServicePortalDuration(Infinity);
-                        });
-                }
-            }, SLOW_CONNECTION_POLL_DURATION);
-        } else if (networkState === NetworkStatus.NO_CONNECTION) {
-            logPollCheckpoints('Clear poll due to no connection');
-            // if no connection, dont have to poll
-            cleanupPoll();
-        }
-
+    
+            const requestStartTime = Date.now();
+            logPollCheckpoints(`Start poll request`);
+    
+            fetch('https://clients3.google.com/generate_204', {
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    Pragma: 'no-cache',
+                    Expires: '0',
+                },
+            })
+                .then(response => {
+                    if (AppState.currentState !== 'active') {
+                        logPollCheckpoints('Poll result ignored due to app in background');
+                        return;
+                    }
+    
+                    if (
+                        response.status === 204 &&
+                        (networkState === NetworkStatus.CONNECTED ||
+                            networkState === NetworkStatus.SLOW_CONNECTION)
+                    ) {
+                        const requestDuration = Date.now() - requestStartTime;
+                        logPollCheckpoints(`Poll success, duration: ${requestDuration}ms`);
+                        setServicePortalDuration(requestDuration);
+                    } else {
+                        logPollCheckpoints(
+                            `Poll failed with status: ${response.status} and network status: ${networkState}`
+                        );
+                        setServicePortalDuration(Infinity);
+                    }
+                })
+                .catch(() => {
+                    logPollCheckpoints('Poll error-ed out');
+                    setServicePortalDuration(Infinity);
+                });
+        };
+    
+        intervalId.current = setInterval(pollNetworkStatus, SLOW_CONNECTION_POLL_DURATION);
+    
         return () => {
             logPollCheckpoints('Clear poll due to render');
             cleanupPoll();
         };
     }, [networkState]);
+    
 
     return [networkState, prevState];
 };

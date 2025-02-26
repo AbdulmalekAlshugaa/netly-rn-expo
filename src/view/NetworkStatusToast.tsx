@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, InteractionManager, Platform, StatusBar, StyleSheet, Text, View } from 'react-native';
 import useNetworkStatus from '../hooks/useNetworkStatus';
+import { NetworkStatus } from '../constants/NetLy';
 
 // Configuration constants
 const STATUS_BAR_HEIGHT = Platform.OS === 'ios' ? 20 : 0;
@@ -12,17 +13,13 @@ const COLOR_DISCONNECTED = '#F44336'; // Red for disconnected
 const COLOR_CONNECTED = '#4CAF50'; // Green for restored connection
 const COLOR_SLOW_CONNECTION = '#FFC107'; // Yellow for only slow connection
 
-export enum NetworkStatus {
-    NO_CONNECTION = 'No Connection',
-    CONNECTED = 'Connected',
-    SLOW_CONNECTION = 'Slow Connection',
+interface ToastProps {
+    message: string;
+    color: string;
 }
 
 const NetworkStatusToast: React.FC = () => {
     const [networkState, prevNetworkState] = useNetworkStatus();
-    console.log('current states', networkState);
-    console.log('prev states', prevNetworkState);
-
     // Local state for controlling toast display
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
