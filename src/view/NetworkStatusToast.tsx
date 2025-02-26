@@ -13,7 +13,6 @@ import { connectionMessages, NetworkStatus } from "../constants/NetLy";
 
 // Configuration constants
 
-
 interface NetworkStatusToastProps {
   disconnectedColor?: string;
   connectedColor?: string;
@@ -32,7 +31,7 @@ const NetworkStatusToast: React.FC<NetworkStatusToastProps> = ({
   disconnectedColor = "#F44336", // Default Red
   connectedColor = "#4CAF50", // Default Green
   slowConnectionColor = "#FFC107", // Default Yellow
-  toastHeight =  34,
+  toastHeight = 34,
   animationDuration = 400,
   dismissTimeout = 3000,
   messageNoConnection = connectionMessages.NO_CONNECTION,
@@ -113,7 +112,7 @@ const NetworkStatusToast: React.FC<NetworkStatusToastProps> = ({
     }),
     paddingTop: animatedValue.interpolate({
       inputRange: [0, 1],
-      outputRange: [0, toastHeight + 8],
+      outputRange: [0, toastHeight / 2],
     }),
     marginBottom: animatedValue.interpolate({
       inputRange: [0, 1],
