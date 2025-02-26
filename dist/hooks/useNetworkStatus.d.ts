@@ -1,7 +1,3 @@
-export declare enum NetworkStatus {
-    NO_CONNECTION = "No Connection",
-    CONNECTED = "Connected",
-    SLOW_CONNECTION = "Slow Connection"
-}
+import { NetworkStatus } from '../constants/NetLy';
 declare const useNetworkStatus: () => [NetworkStatus, NetworkStatus | undefined];
 export default useNetworkStatus;

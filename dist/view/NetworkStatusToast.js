@@ -36,10 +36,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NetworkStatus = void 0;
 var react_1 = __importStar(require("react"));
 var react_native_1 = require("react-native");
 var useNetworkStatus_1 = __importDefault(require("../hooks/useNetworkStatus"));
+var NetLy_1 = require("../constants/NetLy");
 // Configuration constants
 var STATUS_BAR_HEIGHT = react_native_1.Platform.OS === 'ios' ? 20 : 0;
 var ANIMATION_DURATION = 400;
@@ -48,16 +48,8 @@ var TOAST_HEIGHT = STATUS_BAR_HEIGHT + 34;
 var COLOR_DISCONNECTED = '#F44336'; // Red for disconnected
 var COLOR_CONNECTED = '#4CAF50'; // Green for restored connection
 var COLOR_SLOW_CONNECTION = '#FFC107'; // Yellow for only slow connection
-var NetworkStatus;
-(function (NetworkStatus) {
-    NetworkStatus["NO_CONNECTION"] = "No Connection";
-    NetworkStatus["CONNECTED"] = "Connected";
-    NetworkStatus["SLOW_CONNECTION"] = "Slow Connection";
-})(NetworkStatus || (exports.NetworkStatus = NetworkStatus = {}));
 var NetworkStatusToast = function () {
     var _a = (0, useNetworkStatus_1.default)(), networkState = _a[0], prevNetworkState = _a[1];
-    console.log('current states', networkState);
-    console.log('prev states', prevNetworkState);
     // Local state for controlling toast display
     var _b = (0, react_1.useState)(false), showToast = _b[0], setShowToast = _b[1];
     var _c = (0, react_1.useState)(''), toastMessage = _c[0], setToastMessage = _c[1];
@@ -66,25 +58,25 @@ var NetworkStatusToast = function () {
     var animatedValue = (0, react_1.useRef)(new react_native_1.Animated.Value(0)).current;
     (0, react_1.useEffect)(function () {
         // When network goes down
-        if (networkState === NetworkStatus.NO_CONNECTION && networkState !== prevNetworkState) {
+        if (networkState === NetLy_1.NetworkStatus.NO_CONNECTION && networkState !== prevNetworkState) {
             setToastMessage('No Internet Connection');
             setToastColor(COLOR_DISCONNECTED);
             show();
         }
         // When network is restored
-        else if (prevNetworkState === NetworkStatus.NO_CONNECTION && networkState === NetworkStatus.CONNECTED) {
+        else if (prevNetworkState === NetLy_1.NetworkStatus.NO_CONNECTION && networkState === NetLy_1.NetworkStatus.CONNECTED) {
             setToastMessage('Internet Connection Restored');
             setToastColor(COLOR_CONNECTED);
             show();
         }
         // When network becomes slow
-        else if (prevNetworkState === NetworkStatus.CONNECTED && networkState === NetworkStatus.SLOW_CONNECTION) {
+        else if (prevNetworkState === NetLy_1.NetworkStatus.CONNECTED && networkState === NetLy_1.NetworkStatus.SLOW_CONNECTION) {
             setToastMessage('Slow Internet Connection');
             setToastColor(COLOR_SLOW_CONNECTION);
             show();
         }
         // Always schedule a dismiss when network is connected (or restored)
-        if (networkState === NetworkStatus.CONNECTED) {
+        if (networkState === NetLy_1.NetworkStatus.CONNECTED) {
             var timeout_1 = setTimeout(function () { return dismiss(); }, DISMISS_TIMEOUT);
             return function () { return clearTimeout(timeout_1); };
         }
@@ -100,7 +92,7 @@ var NetworkStatusToast = function () {
     };
     var dismiss = function () {
         // Dismiss regardless of previous state if network is connected
-        if (networkState === NetworkStatus.CONNECTED) {
+        if (networkState === NetLy_1.NetworkStatus.CONNECTED) {
             react_native_1.InteractionManager.runAfterInteractions(function () {
                 react_native_1.Animated.timing(animatedValue, {
                     toValue: 0,
