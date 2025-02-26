@@ -109,7 +109,7 @@ var NetworkStatusToast = function (_a) {
         }),
         paddingTop: animatedValue.interpolate({
             inputRange: [0, 1],
-            outputRange: [0, toastHeight + 8],
+            outputRange: [0, toastHeight / 2],
         }),
         marginBottom: animatedValue.interpolate({
             inputRange: [0, 1],
