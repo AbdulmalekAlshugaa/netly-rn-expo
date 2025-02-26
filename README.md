@@ -81,6 +81,13 @@ The default styles and messages can be overridden via props. Example:
 | `contentStyle` | `ViewStyle` | `undefined` | Custom styles for the toast container |
 | `toastTextStyle` | `TextStyle` | `undefined` | Custom styles for the toast text |
 
+## Demo
+
+
+https://github.com/user-attachments/assets/cc6e8909-42aa-4a53-a1b1-62eb4decc6a2
+
+
+- 
 ## Requirements
 - React Native 0.65+
 - Expo 45+ (if using Expo)
