@@ -1,3 +1,17 @@
-import React from 'react';
-declare const NetworkStatusToast: React.FC;
+import React from "react";
+import { View } from "react-native";
+interface NetworkStatusToastProps {
+    disconnectedColor?: string;
+    connectedColor?: string;
+    slowConnectionColor?: string;
+    toastHeight?: number;
+    animationDuration?: number;
+    dismissTimeout?: number;
+    messageNoConnection?: string;
+    messageConnected?: string;
+    messageSlowConnection?: string;
+    contentStyle?: View["props"]["style"];
+    toastTextStyle?: View["props"]["style"];
+}
+declare const NetworkStatusToast: React.FC<NetworkStatusToastProps>;
 export default NetworkStatusToast;
