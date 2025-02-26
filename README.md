@@ -1,5 +1,4 @@
 # netly-rn-expo
-# netly-rn-expo
 
 `netly-rn-expo` is a lightweight React Native package for displaying a network status toast that notifies users about their internet connection status in real time. It supports detecting when the network is lost, restored, or becomes slow.
 
@@ -57,6 +56,12 @@ The default styles and messages can be overridden via props. Example:
     slowConnectionColor="yellow"
     toastHeight={50}
     animationDuration={500}
+    dismissTimeout={3000}
+    messageNoConnection="No internet connection"
+    messageConnected="Connected to the internet"
+    messageSlowConnection="Slow internet connection detected"
+    contentStyle={{ backgroundColor: 'black' }}
+    toastTextStyle={{ color: 'white' }}
 />
 ```
 
@@ -69,6 +74,12 @@ The default styles and messages can be overridden via props. Example:
 | `slowConnectionColor` | `string` | `#FFC107` (Yellow) | Color for the slow connection state |
 | `toastHeight` | `number` | `34` | Height of the toast notification |
 | `animationDuration` | `number` | `400` | Duration of the toast slide animation in ms |
+| `dismissTimeout` | `number` | `3000` | Time in ms before the toast disappears |
+| `messageNoConnection` | `string` | "No internet connection" | Message displayed when no internet |
+| `messageConnected` | `string` | "Connected to the internet" | Message displayed when reconnected |
+| `messageSlowConnection` | `string` | "Slow internet connection detected" | Message displayed on slow connection |
+| `contentStyle` | `ViewStyle` | `undefined` | Custom styles for the toast container |
+| `toastTextStyle` | `TextStyle` | `undefined` | Custom styles for the toast text |
 
 ## Requirements
 - React Native 0.65+
