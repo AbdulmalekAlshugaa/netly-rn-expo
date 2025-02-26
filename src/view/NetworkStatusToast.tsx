@@ -25,7 +25,7 @@ interface NetworkStatusToastProps {
   messageConnected?: string;
   messageSlowConnection?: string;
   contentStyle?: View["props"]["style"];
-  toastTextStyle?: View["props"]["style"];
+  toastTextStyle?: Text["props"]["style"];
 }
 
 const NetworkStatusToast: React.FC<NetworkStatusToastProps> = ({
