@@ -3,8 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var react_1 = require("react");
 /**
  * Stores the last known value during every render.
- *
- * @param value Primitive variable to be stored as the "previous value" upon the next render.
+ * @param value The value to store.
  * @returns The last known value.
  */
 var usePreviousValue = function (value) {

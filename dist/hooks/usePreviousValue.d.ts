@@ -1,7 +1,6 @@
 /**
  * Stores the last known value during every render.
- *
- * @param value Primitive variable to be stored as the "previous value" upon the next render.
+ * @param value The value to store.
  * @returns The last known value.
  */
 declare const usePreviousValue: <T extends {}>(value: T) => T | undefined;
