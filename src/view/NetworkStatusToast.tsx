@@ -23,6 +23,7 @@ interface NetworkStatusToastProps {
   contentStyle?: View["props"]["style"];
   toastTextStyle?: Text["props"]["style"];
   debug?: boolean;
+  slowConnectionDuration?: number;
 }
 
 const NetworkStatusToast: React.FC<NetworkStatusToastProps> = ({
@@ -38,8 +39,9 @@ const NetworkStatusToast: React.FC<NetworkStatusToastProps> = ({
   contentStyle,
   toastTextStyle,
   debug = false,
+  slowConnectionDuration,
 }) => {
-  const [networkState, prevNetworkState] = useNetworkStatus({ debug });
+  const [networkState, prevNetworkState] = useNetworkStatus({ debug, slowConnectionDuration });
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>("");
   const [toastColor, setToastColor] = useState<string>(connectedColor);

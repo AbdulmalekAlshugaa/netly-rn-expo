@@ -4,9 +4,10 @@ import { AppState } from "react-native";
 import usePreviousValue from "./usePreviousValue";
 import { NetworkStatus } from "../constants/NetLy";
 
-const SLOW_CONNECTION_POLL_DURATION = 30000;
-
-const useNetworkStatus = ({ debug = false }: { debug?: boolean } = {}): [
+const useNetworkStatus = ({
+  slowConnectionDuration = 30000,
+  debug = false,
+}: { slowConnectionDuration?: number; debug?: boolean } = {}): [
   NetworkStatus,
   NetworkStatus | undefined
 ] => {
@@ -146,10 +147,7 @@ const useNetworkStatus = ({ debug = false }: { debug?: boolean } = {}): [
         });
     };
 
-    intervalId.current = setInterval(
-      pollNetworkStatus,
-      SLOW_CONNECTION_POLL_DURATION
-    );
+    intervalId.current = setInterval(pollNetworkStatus, slowConnectionDuration);
 
     return () => {
       logPollCheckpoints("Clear poll due to render");
