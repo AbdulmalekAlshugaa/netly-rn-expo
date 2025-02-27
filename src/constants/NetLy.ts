@@ -9,3 +9,4 @@ export const connectionMessages = {
     CONNECTED: 'Back online',
     SLOW_CONNECTION: 'Slow connection detected',
 };
+
