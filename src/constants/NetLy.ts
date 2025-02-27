@@ -5,7 +5,7 @@ export enum NetworkStatus {
 }
 
 export const connectionMessages = {
-    NO_CONNECTION: 'No Internet Connection',
-    CONNECTED: 'Internet Connection Restored',
-    SLOW_CONNECTION: 'Slow Internet Connection',
+    NO_CONNECTION: 'You are offline',
+    CONNECTED: 'Back online',
+    SLOW_CONNECTION: 'Slow connection detected',
 };
