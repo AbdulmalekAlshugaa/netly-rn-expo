@@ -8,13 +8,12 @@ var react_1 = require("react");
 var react_native_1 = require("react-native");
 var usePreviousValue_1 = __importDefault(require("./usePreviousValue"));
 var NetLy_1 = require("../constants/NetLy");
-var SLOW_CONNECTION_POLL_DURATION = 30000;
 var useNetworkStatus = function (_a) {
-    var _b = _a === void 0 ? {} : _a, _c = _b.debug, debug = _c === void 0 ? false : _c;
+    var _b = _a === void 0 ? {} : _a, _c = _b.slowConnectionDuration, slowConnectionDuration = _c === void 0 ? 30000 : _c, _d = _b.debug, debug = _d === void 0 ? false : _d;
     var netInfo = (0, netinfo_1.useNetInfo)();
-    var _d = (0, react_1.useState)(NetLy_1.NetworkStatus.CONNECTED), networkState = _d[0], setNetworkState = _d[1];
+    var _e = (0, react_1.useState)(NetLy_1.NetworkStatus.CONNECTED), networkState = _e[0], setNetworkState = _e[1];
     var prevState = (0, usePreviousValue_1.default)(networkState);
-    var _e = (0, react_1.useState)(0), servicePortalDuration = _e[0], setServicePortalDuration = _e[1];
+    var _f = (0, react_1.useState)(0), servicePortalDuration = _f[0], setServicePortalDuration = _f[1];
     var SLOW_CONNECTION_DETECTED_DURATION = 30000;
     var logStateTransition = function (fromState, toState) {
         if (debug) {
@@ -113,7 +112,7 @@ var useNetworkStatus = function (_a) {
                 setServicePortalDuration(Infinity);
             });
         };
-        intervalId.current = setInterval(pollNetworkStatus, SLOW_CONNECTION_POLL_DURATION);
+        intervalId.current = setInterval(pollNetworkStatus, slowConnectionDuration);
         return function () {
             logPollCheckpoints("Clear poll due to render");
             cleanupPoll();

@@ -47,8 +47,8 @@ var NetworkStatusToast = function (_a) {
     _d = _a.slowConnectionColor, // Default Green
     slowConnectionColor = _d === void 0 ? "#FFC107" : _d, // Default Yellow
     _e = _a.toastHeight, // Default Yellow
-    toastHeight = _e === void 0 ? 80 : _e, _f = _a.animationDuration, animationDuration = _f === void 0 ? 400 : _f, _g = _a.dismissTimeout, dismissTimeout = _g === void 0 ? 3000 : _g, _h = _a.messageNoConnection, messageNoConnection = _h === void 0 ? NetLy_1.connectionMessages.NO_CONNECTION : _h, _j = _a.messageConnected, messageConnected = _j === void 0 ? NetLy_1.connectionMessages.CONNECTED : _j, _k = _a.messageSlowConnection, messageSlowConnection = _k === void 0 ? NetLy_1.connectionMessages.SLOW_CONNECTION : _k, contentStyle = _a.contentStyle, toastTextStyle = _a.toastTextStyle, _l = _a.debug, debug = _l === void 0 ? false : _l;
-    var _m = (0, useNetworkStatus_1.default)({ debug: debug }), networkState = _m[0], prevNetworkState = _m[1];
+    toastHeight = _e === void 0 ? 80 : _e, _f = _a.animationDuration, animationDuration = _f === void 0 ? 400 : _f, _g = _a.dismissTimeout, dismissTimeout = _g === void 0 ? 3000 : _g, _h = _a.messageNoConnection, messageNoConnection = _h === void 0 ? NetLy_1.connectionMessages.NO_CONNECTION : _h, _j = _a.messageConnected, messageConnected = _j === void 0 ? NetLy_1.connectionMessages.CONNECTED : _j, _k = _a.messageSlowConnection, messageSlowConnection = _k === void 0 ? NetLy_1.connectionMessages.SLOW_CONNECTION : _k, contentStyle = _a.contentStyle, toastTextStyle = _a.toastTextStyle, _l = _a.debug, debug = _l === void 0 ? false : _l, slowConnectionDuration = _a.slowConnectionDuration;
+    var _m = (0, useNetworkStatus_1.default)({ debug: debug, slowConnectionDuration: slowConnectionDuration }), networkState = _m[0], prevNetworkState = _m[1];
     var _o = (0, react_1.useState)(false), showToast = _o[0], setShowToast = _o[1];
     var _p = (0, react_1.useState)(""), toastMessage = _p[0], setToastMessage = _p[1];
     var _q = (0, react_1.useState)(connectedColor), toastColor = _q[0], setToastColor = _q[1];

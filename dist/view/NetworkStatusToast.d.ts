@@ -13,6 +13,7 @@ interface NetworkStatusToastProps {
     contentStyle?: View["props"]["style"];
     toastTextStyle?: Text["props"]["style"];
     debug?: boolean;
+    slowConnectionDuration?: number;
 }
 declare const NetworkStatusToast: React.FC<NetworkStatusToastProps>;
 export default NetworkStatusToast;
