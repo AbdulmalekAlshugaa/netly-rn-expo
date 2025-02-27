@@ -68,19 +68,23 @@ The default styles and messages can be overridden via props. Example:
 
 ### Available Props
 
-| Prop                    | Type        | Default Value                       | Description                                 |
-| ----------------------- | ----------- | ----------------------------------- | ------------------------------------------- |
-| `disconnectedColor`     | `string`    | `#F44336` (Red)                     | Color for the no connection state           |
-| `connectedColor`        | `string`    | `#4CAF50` (Green)                   | Color for the restored connection state     |
-| `slowConnectionColor`   | `string`    | `#FFC107` (Yellow)                  | Color for the slow connection state         |
-| `toastHeight`           | `number`    | `34`                                | Height of the toast notification            |
-| `animationDuration`     | `number`    | `400`                               | Duration of the toast slide animation in ms |
-| `dismissTimeout`        | `number`    | `3000`                              | Time in ms before the toast disappears      |
-| `messageNoConnection`   | `string`    | "No internet connection"            | Message displayed when no internet          |
-| `messageConnected`      | `string`    | "Connected to the internet"         | Message displayed when reconnected          |
-| `messageSlowConnection` | `string`    | "Slow internet connection detected" | Message displayed on slow connection        |
-| `contentStyle`          | `ViewStyle` | `undefined`                         | Custom styles for the toast container       |
-| `toastTextStyle`        | `TextStyle` | `undefined`                         | Custom styles for the toast text            |
+| Prop                    | Type        | Default Value                       | Description                                        |
+|-------------------------|------------|-------------------------------------|----------------------------------------------------|
+| `disconnectedColor`     | `string`    | `#F44336` (Red)                     | Color for the no-connection state                 |
+| `connectedColor`        | `string`    | `#4CAF50` (Green)                   | Color for the restored connection state           |
+| `slowConnectionColor`   | `string`    | `#FFC107` (Yellow)                  | Color for the slow connection state               |
+| `toastHeight`           | `number`    | `34`                                | Height of the toast notification                  |
+| `animationDuration`     | `number`    | `400`                               | Duration (in ms) of the toast slide animation     |
+| `dismissTimeout`        | `number`    | `3000`                              | Time (in ms) before the toast disappears          |
+| `messageNoConnection`   | `string`    | `"No internet connection"`          | Message displayed when there is no internet       |
+| `messageConnected`      | `string`    | `"Connected to the internet"`       | Message displayed when the internet is restored   |
+| `messageSlowConnection` | `string`    | `"Slow internet connection detected"` | Message displayed on a slow connection            |
+| `contentStyle`          | `ViewStyle` | `undefined`                         | Custom styles for the toast container            |
+| `toastTextStyle`        | `TextStyle` | `undefined`                         | Custom styles for the toast text                 |
+| `debug`                 | `boolean`   | `false`                             | Allows users to see network logs when enabled    |
+| `slowConnectionDuration`| `number`    | `30000`                             | Time (in ms) before considering a slow connection as disconnected |
+
+
 
 ## Testing on a Real Device
 
