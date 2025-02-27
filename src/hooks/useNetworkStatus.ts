@@ -12,12 +12,9 @@ const useNetworkStatus = ({
   NetworkStatus | undefined
 ] => {
   const netInfo = useNetInfo();
-
   const [networkState, setNetworkState] = useState(NetworkStatus.CONNECTED);
   const prevState = usePreviousValue(networkState);
   const [servicePortalDuration, setServicePortalDuration] = useState(0);
-
-  const SLOW_CONNECTION_DETECTED_DURATION = 30000;
 
   const logStateTransition = (
     fromState: NetworkStatus,
@@ -51,7 +48,7 @@ const useNetworkStatus = ({
             NetworkStatus.NO_CONNECTION
           );
           setNetworkState(NetworkStatus.NO_CONNECTION);
-        } else if (servicePortalDuration >= SLOW_CONNECTION_DETECTED_DURATION) {
+        } else if (servicePortalDuration >= slowConnectionDuration) {
           logStateTransition(
             NetworkStatus.CONNECTED,
             NetworkStatus.SLOW_CONNECTION
@@ -65,7 +62,7 @@ const useNetworkStatus = ({
             NetworkStatus.NO_CONNECTION
           );
           setNetworkState(NetworkStatus.NO_CONNECTION);
-        } else if (servicePortalDuration < SLOW_CONNECTION_DETECTED_DURATION) {
+        } else if (servicePortalDuration < slowConnectionDuration) {
           logStateTransition(
             NetworkStatus.SLOW_CONNECTION,
             NetworkStatus.CONNECTED
