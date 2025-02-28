@@ -16,24 +16,29 @@ or if you are using Yarn:
 yarn add netly-rn-expo
 ```
 
-> **Note:** This package already includes `@react-native-community/netinfo`, so you don’t need to install it separately.
+> **Note:** This package requires @react-native-community/netinfo as a peer dependency. You must install it separately.
+
+## support
+
+React Native CLI (Bare Workflow)
+Expo (Managed & Bare Workflow)
 
 ## Usage
 
 Import the `NetworkStatusToast` component and use it in your main app component:
 
 ```tsx
-import React from 'react';
-import { View, Text } from 'react-native';
-import NetworkStatusToast from 'netly-rn-expo';
+import React from "react";
+import { View, Text } from "react-native";
+import NetworkStatusToast from "netly-rn-expo";
 
 const App = () => {
-    return (
-        <View style={{ flex: 1 }}>
-            <NetworkStatusToast />
-            <Text>Welcome to my app!</Text>
-        </View>
-    );
+  return (
+    <View style={{ flex: 1 }}>
+      <NetworkStatusToast />
+      <Text>Welcome to my app!</Text>
+    </View>
+  );
 };
 
 export default App;
@@ -52,39 +57,37 @@ The default styles and messages can be overridden via props. Example:
 
 ```tsx
 <NetworkStatusToast
-    disconnectedColor="red"
-    connectedColor="green"
-    slowConnectionColor="yellow"
-    toastHeight={50}
-    animationDuration={500}
-    dismissTimeout={3000}
-    messageNoConnection="No internet connection"
-    messageConnected="Connected to the internet"
-    messageSlowConnection="Slow internet connection detected"
-    contentStyle={{ backgroundColor: 'black' }}
-    toastTextStyle={{ color: 'white' }}
+  disconnectedColor="red"
+  connectedColor="green"
+  slowConnectionColor="yellow"
+  toastHeight={50}
+  animationDuration={500}
+  dismissTimeout={3000}
+  messageNoConnection="No internet connection"
+  messageConnected="Connected to the internet"
+  messageSlowConnection="Slow internet connection detected"
+  contentStyle={{ backgroundColor: "black" }}
+  toastTextStyle={{ color: "white" }}
 />
 ```
 
 ### Available Props
 
-| Prop                    | Type        | Default Value                       | Description                                        |
-|-------------------------|------------|-------------------------------------|----------------------------------------------------|
-| `disconnectedColor`     | `string`    | `#F44336` (Red)                     | Color for the no-connection state                 |
-| `connectedColor`        | `string`    | `#4CAF50` (Green)                   | Color for the restored connection state           |
-| `slowConnectionColor`   | `string`    | `#FFC107` (Yellow)                  | Color for the slow connection state               |
-| `toastHeight`           | `number`    | `34`                                | Height of the toast notification                  |
-| `animationDuration`     | `number`    | `400`                               | Duration (in ms) of the toast slide animation     |
-| `dismissTimeout`        | `number`    | `3000`                              | Time (in ms) before the toast disappears          |
-| `messageNoConnection`   | `string`    | `"No internet connection"`          | Message displayed when there is no internet       |
-| `messageConnected`      | `string`    | `"Connected to the internet"`       | Message displayed when the internet is restored   |
-| `messageSlowConnection` | `string`    | `"Slow internet connection detected"` | Message displayed on a slow connection            |
-| `contentStyle`          | `ViewStyle` | `undefined`                         | Custom styles for the toast container            |
-| `toastTextStyle`        | `TextStyle` | `undefined`                         | Custom styles for the toast text                 |
-| `debug`                 | `boolean`   | `false`                             | Allows users to see network logs when enabled    |
-| `slowConnectionDuration`| `number`    | `30000`                             | Time (in ms) before considering a slow connection as disconnected |
-
-
+| Prop                     | Type        | Default Value                         | Description                                                       |
+| ------------------------ | ----------- | ------------------------------------- | ----------------------------------------------------------------- |
+| `disconnectedColor`      | `string`    | `#F44336` (Red)                       | Color for the no-connection state                                 |
+| `connectedColor`         | `string`    | `#4CAF50` (Green)                     | Color for the restored connection state                           |
+| `slowConnectionColor`    | `string`    | `#FFC107` (Yellow)                    | Color for the slow connection state                               |
+| `toastHeight`            | `number`    | `34`                                  | Height of the toast notification                                  |
+| `animationDuration`      | `number`    | `400`                                 | Duration (in ms) of the toast slide animation                     |
+| `dismissTimeout`         | `number`    | `3000`                                | Time (in ms) before the toast disappears                          |
+| `messageNoConnection`    | `string`    | `"No internet connection"`            | Message displayed when there is no internet                       |
+| `messageConnected`       | `string`    | `"Connected to the internet"`         | Message displayed when the internet is restored                   |
+| `messageSlowConnection`  | `string`    | `"Slow internet connection detected"` | Message displayed on a slow connection                            |
+| `contentStyle`           | `ViewStyle` | `undefined`                           | Custom styles for the toast container                             |
+| `toastTextStyle`         | `TextStyle` | `undefined`                           | Custom styles for the toast text                                  |
+| `debug`                  | `boolean`   | `false`                               | Allows users to see network logs when enabled                     |
+| `slowConnectionDuration` | `number`    | `30000`                               | Time (in ms) before considering a slow connection as disconnected |
 
 ## Testing on a Real Device
 
