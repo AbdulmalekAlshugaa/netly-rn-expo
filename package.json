@@ -4,6 +4,14 @@
   "description": "A React Native package to get network information and display it in a user-friendly way.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AbdulmalekAlshugaa/netly-rn-expo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AbdulmalekAlshugaa/netly-rn-expo/issues"
+  },
+  "homepage": "https://github.com/AbdulmalekAlshugaa/netly-rn-expo#readme",
   "exports": {
     "import": "./dist/index.js",
     "require": "./dist/index.js"
