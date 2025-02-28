@@ -1,6 +1,9 @@
 import { NetworkStatus } from "../constants/NetLy";
-declare const useNetworkStatus: ({ slowConnectionDuration, debug, }?: {
+type UseNetworkStatusProps = {
     slowConnectionDuration?: number;
     debug?: boolean;
-}) => [NetworkStatus, NetworkStatus | undefined];
+    fetchFn?: typeof fetch;
+    getAppState?: () => string;
+};
+declare const useNetworkStatus: ({ slowConnectionDuration, debug, fetchFn, getAppState, }?: UseNetworkStatusProps) => [NetworkStatus, NetworkStatus | undefined];
 export default useNetworkStatus;
