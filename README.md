@@ -1,166 +1,188 @@
 # netly-rn-expo
 
-`netly-rn-expo` is a lightweight React Native package for displaying a network status toast that notifies users about their internet connection status in real time. It supports detecting when the network is lost, restored, or becomes slow.
+[![npm version](https://img.shields.io/npm/v/netly-rn-expo.svg)](https://www.npmjs.com/package/netly-rn-expo)
+[![npm downloads](https://img.shields.io/npm/dm/netly-rn-expo.svg)](https://www.npmjs.com/package/netly-rn-expo)
+[![CI](https://github.com/AbdulmalekAlshugaa/netly-rn-expo/actions/workflows/ci.yml/badge.svg)](https://github.com/AbdulmalekAlshugaa/netly-rn-expo/actions/workflows/ci.yml)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue.svg)](https://www.typescriptlang.org/)
+[![license](https://img.shields.io/npm/l/netly-rn-expo.svg)](./LICENSE)
+
+A lightweight network-status toast for React Native and Expo that tells your users when they go **offline**, come **back online**, or are on a **slow connection** — the case most libraries ignore.
+
+- 🐌 **Slow-connection detection**, not just offline/online: a low-overhead latency probe with hysteresis, so one hiccup never flashes a false alarm.
+- 🪶 **Zero runtime dependencies** (only `@react-native-community/netinfo` as a peer).
+- ⚡ Animations on the **native driver**; polling pauses automatically in the background.
+- 📱 Works with **Expo (managed & bare)** and React Native CLI, iOS and Android.
+- ♿ Toasts are **announced to screen readers**.
+- 🔧 Fully customizable — or skip the UI entirely and use the `useNetworkStatus` hook.
+
+## Demo
+
+[https://github.com/user-attachments/assets/cc6e8909-42aa-4a53-a1b1-62eb4decc6a2](https://github.com/user-attachments/assets/cc6e8909-42aa-4a53-a1b1-62eb4decc6a2)
 
 ## Installation
 
-To install the package, run:
-
 ```sh
-npm install netly-rn-expo
+npm install netly-rn-expo @react-native-community/netinfo
+# or
+yarn add netly-rn-expo @react-native-community/netinfo
+# or, in an Expo app
+npx expo install @react-native-community/netinfo && npm install netly-rn-expo
 ```
 
-or if you are using Yarn:
+## Quick start
 
-```sh
-yarn add netly-rn-expo
-```
-
-> **Note:** This package requires @react-native-community/netinfo as a peer dependency. You must install it separately.
-
-## support
-
-React Native CLI (Bare Workflow)
-Expo (Managed & Bare Workflow)
-
-## Usage
-
-Import the `NetworkStatusToast` component and use it in your main app component:
+Drop the toast once near the root of your app:
 
 ```tsx
 import React from "react";
 import { View, Text } from "react-native";
 import NetworkStatusToast from "netly-rn-expo";
 
-const App = () => {
-  return (
-    <View style={{ flex: 1 }}>
-      <NetworkStatusToast />
-      <Text>Welcome to my app!</Text>
-    </View>
-  );
-};
+const App = () => (
+  <View style={{ flex: 1 }}>
+    <NetworkStatusToast />
+    <Text>Welcome to my app!</Text>
+  </View>
+);
 
 export default App;
 ```
 
-## Features
+That's it. Offline shows a persistent red toast; reconnecting shows a green one that auto-dismisses; a sluggish connection shows a yellow warning.
 
-- 🚀 Detects and displays a toast when the internet connection is lost or restored.
-- ⚡ Identifies slow network connections.
-- 🎨 Smooth animations with customizable styles.
-- 📱 Works on both iOS and Android.
+## Just the hook
+
+Don't want the built-in UI? Use the hook and render anything you like:
+
+```tsx
+import { useNetworkStatus, NetworkStatus } from "netly-rn-expo";
+
+const ConnectionAwareScreen = () => {
+  const { status, isConnected, isSlow } = useNetworkStatus({
+    pollInterval: 10000,
+    slowThreshold: 2000,
+    onStatusChange: (status, prev) => console.log(`${prev} -> ${status}`),
+  });
+
+  if (!isConnected) return <OfflineScreen />;
+  if (isSlow) return <LowBandwidthMode />;
+  return <FullExperience />;
+};
+```
+
+### How slow detection works
+
+Every `pollInterval` ms (while the app is foregrounded and online) the hook fetches `pingUrl` — a tiny 204 endpoint — and measures latency. After `slowSampleCount` consecutive probes slower than `slowThreshold` (or failing/timing out), status becomes `SLOW_CONNECTION`. A single fast probe flips it back. Polling stops entirely while offline or backgrounded.
 
 ## Customization
 
-The default styles and messages can be overridden via props. Example:
-
 ```tsx
 <NetworkStatusToast
-  disconnectedColor="red"
-  connectedColor="green"
-  slowConnectionColor="yellow"
-  toastHeight={50}
-  animationDuration={500}
-  dismissTimeout={3000}
+  position="bottom"
+  bottomOffset={24}
+  disconnectedColor="#B00020"
   messageNoConnection="No internet connection"
-  messageConnected="Connected to the internet"
-  messageSlowConnection="Slow internet connection detected"
-  contentStyle={{ backgroundColor: "black" }}
-  toastTextStyle={{ color: "white" }}
+  dismissTimeout={4000}
+  slowThreshold={1500}
+  pingUrl="https://my-api.example.com/health" // e.g. where Google is unreachable
+  onStatusChange={(status) => analytics.track("network_status", { status })}
 />
 ```
 
-### Available Props
+Fully custom content, keeping the slide animation:
 
-| Prop                     | Type        | Default Value                         | Description                                                       |
-| ------------------------ | ----------- | ------------------------------------- | ----------------------------------------------------------------- |
-| `disconnectedColor`      | `string`    | `#F44336` (Red)                       | Color for the no-connection state                                 |
-| `connectedColor`         | `string`    | `#4CAF50` (Green)                     | Color for the restored connection state                           |
-| `slowConnectionColor`    | `string`    | `#FFC107` (Yellow)                    | Color for the slow connection state                               |
-| `toastHeight`            | `number`    | `34`                                  | Height of the toast notification                                  |
-| `animationDuration`      | `number`    | `400`                                 | Duration (in ms) of the toast slide animation                     |
-| `dismissTimeout`         | `number`    | `3000`                                | Time (in ms) before the toast disappears                          |
-| `messageNoConnection`    | `string`    | `"No internet connection"`            | Message displayed when there is no internet                       |
-| `messageConnected`       | `string`    | `"Connected to the internet"`         | Message displayed when the internet is restored                   |
-| `messageSlowConnection`  | `string`    | `"Slow internet connection detected"` | Message displayed on a slow connection                            |
-| `contentStyle`           | `ViewStyle` | `undefined`                           | Custom styles for the toast container                             |
-| `toastTextStyle`         | `TextStyle` | `undefined`                           | Custom styles for the toast text                                  |
-| `debug`                  | `boolean`   | `false`                               | Allows users to see network logs when enabled                     |
-| `slowConnectionDuration` | `number`    | `30000`                               | Time (in ms) before considering a slow connection as disconnected |
+```tsx
+<NetworkStatusToast
+  renderToast={({ status, message, dismiss }) => (
+    <Pressable onPress={dismiss}>
+      <Text style={{ color: "white" }}>{message} — tap to hide</Text>
+    </Pressable>
+  )}
+/>
+```
 
-## Testing on a Real Device
+### Safe areas
 
-To test `netly-rn-expo` on a physical device, follow these methods:
+By default the toast reserves a platform-heuristic offset for the status bar / notch. For exact insets, pass them in from [react-native-safe-area-context](https://github.com/AppAndFlow/react-native-safe-area-context):
 
-### **1. Using Expo Go (For Expo Projects)**
+```tsx
+const insets = useSafeAreaInsets();
+<NetworkStatusToast topOffset={insets.top} />
+```
 
-1. Install the **Expo Go** app on your phone.
-2. Start the development server:
-   ```sh
-   expo start
-   ```
-3. Scan the QR code with Expo Go.
-4. **Test network changes:**
-   - Disable Wi-Fi or mobile data to see the "No internet connection" toast.
-   - Re-enable the connection to see the "Connected to the internet" toast.
-   - Switch to a slow network (e.g., throttled hotspot) to trigger "Slow internet connection detected."
+### `NetworkStatusToast` props
 
-### **2. Running on a Physical Device via USB (For Native Testing)**
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `position` | `'top' \| 'bottom'` | `'top'` | Edge the toast slides in from |
+| `topOffset` | `number` | platform heuristic | Space reserved for status bar / notch |
+| `bottomOffset` | `number` | `0` | Space reserved above the bottom edge |
+| `toastHeight` | `number` | `56` | Toast content height (excluding offset) |
+| `disconnectedColor` | `string` | `#F44336` | Offline toast color |
+| `connectedColor` | `string` | `#4CAF50` | Back-online toast color |
+| `slowConnectionColor` | `string` | `#FFC107` | Slow-connection toast color |
+| `messageNoConnection` | `string` | `"You are offline"` | Offline message |
+| `messageConnected` | `string` | `"Back online"` | Reconnected message |
+| `messageSlowConnection` | `string` | `"Slow connection detected"` | Slow-connection message |
+| `showSlowConnection` | `boolean` | `true` | Set `false` to disable slow toasts |
+| `animationDuration` | `number` | `300` | Slide animation duration (ms) |
+| `dismissTimeout` | `number` | `3000` | Auto-dismiss delay for reconnect/slow toasts; the offline toast persists |
+| `contentStyle` | `ViewStyle` | — | Container style override |
+| `toastTextStyle` | `TextStyle` | — | Text style override |
+| `renderToast` | `(props) => ReactNode` | — | Replace the default content (`{status, message, color, dismiss}`) |
+| `announceForAccessibility` | `boolean` | `true` | Announce status changes to screen readers |
+| `onStatusChange` | `(status, prev) => void` | — | Called once per transition |
+| `pollInterval` | `number` | `10000` | Latency probe interval (ms) |
+| `slowThreshold` | `number` | `2000` | Probe latency counted as slow (ms) |
+| `slowSampleCount` | `number` | `2` | Consecutive slow probes before showing the slow toast |
+| `pingUrl` | `string` | Google `generate_204` | Latency probe endpoint |
+| `debug` | `boolean` | `false` | Log probes and transitions |
 
-#### **For Android:**
+### `useNetworkStatus(options)`
 
-1. Enable **Developer Mode** and **USB Debugging** on your phone.
-2. Connect your device via USB and check if it's recognized:
-   ```sh
-   adb devices
-   ```
-3. Run the app on the device:
-   ```sh
-   expo run:android
-   ```
+Accepts `pollInterval`, `slowThreshold`, `slowSampleCount`, `pingUrl`, `pingTimeout`, `onStatusChange`, `debug`, and `fetchFn` (dependency injection for tests). Returns:
 
-#### **For iOS:**
+```ts
+{
+  status: NetworkStatus;                  // CONNECTED | NO_CONNECTION | SLOW_CONNECTION
+  prevStatus: NetworkStatus | undefined;
+  isConnected: boolean;
+  isSlow: boolean;
+}
+```
 
-1. Connect your iPhone via USB.
-2. Run:
-   ```sh
-   expo run:ios --device
-   ```
-3. Select your real device in **Xcode's Device List**.
+## How does it compare?
 
-### **3. Using EAS Build (For OTA Testing)**
+| | netly-rn-expo | react-native-offline | react-native-offline-status |
+| --- | --- | --- | --- |
+| Slow-connection detection | ✅ | ❌ | ❌ |
+| Drop-in toast UI | ✅ | ❌ (utilities/HOCs) | ✅ |
+| Redux required | No | Optimized for Redux | No |
+| TypeScript | ✅ strict, types shipped | ✅ | ❌ |
+| Expo managed workflow | ✅ | ✅ | ⚠️ unmaintained |
 
-1. Install EAS CLI:
-   ```sh
-   npm install -g eas-cli
-   ```
-2. Build for real devices:
-   ```sh
-   eas build --profile preview --platform all
-   ```
-3. Download and install the generated build on your device.
-4. Test network status changes.
+Use `react-native-offline` if you need offline action queues and Redux integration; use netly-rn-expo if you want a polished connection toast (with slow-network awareness) in one line.
 
-### **4. Firebase Test Lab (For Automated Testing)**
+## Migrating from v1
 
-1. Upload your APK/IPA to Firebase Test Lab.
-2. Run UI and network tests on real devices.
-3. Analyze logs, screenshots, and reports.
+See [CHANGELOG.md](./CHANGELOG.md#200-2026-06-11). TL;DR: the hook returns an object instead of a tuple, and `slowConnectionDuration` became `pollInterval` + `slowThreshold`.
 
-## Demo
+## Testing your integration
 
-[https://github.com/user-attachments/assets/cc6e8909-42aa-4a53-a1b1-62eb4decc6a2](https://github.com/user-attachments/assets/cc6e8909-42aa-4a53-a1b1-62eb4decc6a2)
+- **Expo Go**: `npx expo start`, then toggle Wi‑Fi/cellular on the device.
+- **Slow network**: use a throttled hotspot, iOS Network Link Conditioner, or Android emulator network speed settings.
+- The repo's [`example/`](./example) app is preconfigured for this.
 
 ## Requirements
 
-- React Native 0.65+
-- Expo 45+ (if using Expo)
+- React Native 0.65+ / Expo SDK 45+
+- React 17+
+- `@react-native-community/netinfo` 11.4.1+
 
 ## Contributing
 
-Feel free to submit issues or feature requests. PRs are welcome!
+PRs welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License
 
-MIT License
+[MIT](./LICENSE)

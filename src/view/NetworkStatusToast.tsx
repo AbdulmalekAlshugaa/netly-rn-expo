@@ -1,137 +1,219 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   Animated,
-  InteractionManager,
+  Platform,
+  StatusBar,
+  StyleProp,
   StyleSheet,
   Text,
-  View,
+  TextStyle,
+  ViewStyle,
 } from "react-native";
-import useNetworkStatus from "../hooks/useNetworkStatus";
+import useNetworkStatus, {
+  UseNetworkStatusOptions,
+} from "../hooks/useNetworkStatus";
 import { connectionMessages, NetworkStatus } from "../constants/NetLy";
 
-
-interface NetworkStatusToastProps {
-  disconnectedColor?: string;
-  connectedColor?: string;
-  slowConnectionColor?: string;
-  toastHeight?: number;
-  animationDuration?: number;
-  dismissTimeout?: number;
-  messageNoConnection?: string;
-  messageConnected?: string;
-  messageSlowConnection?: string;
-  contentStyle?: View["props"]["style"];
-  toastTextStyle?: Text["props"]["style"];
-  debug?: boolean;
-  slowConnectionDuration?: number;
+export interface ToastRenderProps {
+  status: NetworkStatus;
+  message: string;
+  color: string;
+  dismiss: () => void;
 }
 
+export interface NetworkStatusToastProps
+  extends Pick<
+    UseNetworkStatusOptions,
+    | "pollInterval"
+    | "slowThreshold"
+    | "slowSampleCount"
+    | "pingUrl"
+    | "debug"
+    | "onStatusChange"
+  > {
+  /** Where the toast slides in from. Default: 'top'. */
+  position?: "top" | "bottom";
+  /**
+   * Distance reserved for the status bar / notch when `position="top"`.
+   * Default: a platform heuristic. For exact insets pass
+   * `useSafeAreaInsets().top` from react-native-safe-area-context.
+   */
+  topOffset?: number;
+  /** Distance from the bottom edge when `position="bottom"`. Default: 0. */
+  bottomOffset?: number;
+  /** Height of the toast content (excluding the offset). Default: 56. */
+  toastHeight?: number;
+  connectedColor?: string;
+  disconnectedColor?: string;
+  slowConnectionColor?: string;
+  messageConnected?: string;
+  messageNoConnection?: string;
+  messageSlowConnection?: string;
+  /** Set false to never show slow-connection toasts. Default: true. */
+  showSlowConnection?: boolean;
+  /** Slide animation duration in ms. Default: 300. */
+  animationDuration?: number;
+  /**
+   * Auto-dismiss delay (ms) for the "back online" and "slow connection"
+   * toasts. The offline toast persists until the connection is restored.
+   * Default: 3000.
+   */
+  dismissTimeout?: number;
+  contentStyle?: StyleProp<ViewStyle>;
+  toastTextStyle?: StyleProp<TextStyle>;
+  /** Replace the default text content; the animated shell is kept. */
+  renderToast?: (props: ToastRenderProps) => React.ReactNode;
+  /** Announce status changes to screen readers. Default: true. */
+  announceForAccessibility?: boolean;
+}
+
+const defaultTopOffset = () =>
+  Platform.OS === "ios" ? 59 : StatusBar.currentHeight ?? 24;
+
 const NetworkStatusToast: React.FC<NetworkStatusToastProps> = ({
-  disconnectedColor = "#F44336", // Default Red
-  connectedColor = "#4CAF50", // Default Green
-  slowConnectionColor = "#FFC107", // Default Yellow
-  toastHeight = 80,
-  animationDuration = 400,
-  dismissTimeout = 3000,
-  messageNoConnection = connectionMessages.NO_CONNECTION,
+  position = "top",
+  topOffset,
+  bottomOffset = 0,
+  toastHeight = 56,
+  connectedColor = "#4CAF50",
+  disconnectedColor = "#F44336",
+  slowConnectionColor = "#FFC107",
   messageConnected = connectionMessages.CONNECTED,
+  messageNoConnection = connectionMessages.NO_CONNECTION,
   messageSlowConnection = connectionMessages.SLOW_CONNECTION,
+  showSlowConnection = true,
+  animationDuration = 300,
+  dismissTimeout = 3000,
   contentStyle,
   toastTextStyle,
-  debug = false,
-  slowConnectionDuration,
+  renderToast,
+  announceForAccessibility = true,
+  pollInterval,
+  slowThreshold,
+  slowSampleCount,
+  pingUrl,
+  debug,
+  onStatusChange,
 }) => {
-  const [networkState, prevNetworkState] = useNetworkStatus({ debug, slowConnectionDuration });
-  const [showToast, setShowToast] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string>("");
-  const [toastColor, setToastColor] = useState<string>(connectedColor);
+  const { status, prevStatus } = useNetworkStatus({
+    pollInterval,
+    slowThreshold,
+    slowSampleCount,
+    pingUrl,
+    debug,
+    onStatusChange,
+  });
+
+  const [mounted, setMounted] = useState(false);
+  const mountedRef = useRef(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastColor, setToastColor] = useState(connectedColor);
   const animatedValue = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    // When network goes down
-    if (
-      networkState === NetworkStatus.NO_CONNECTION &&
-      networkState !== prevNetworkState
-    ) {
-      setToastMessage(messageNoConnection);
-      setToastColor(disconnectedColor);
-      show();
-    }
-    // When network is restored
-    else if (
-      prevNetworkState === NetworkStatus.NO_CONNECTION &&
-      networkState === NetworkStatus.CONNECTED
-    ) {
-      setToastMessage(messageConnected);
-      setToastColor(connectedColor);
-      show();
-    }
-    // When network becomes slow
-    else if (
-      prevNetworkState === NetworkStatus.CONNECTED &&
-      networkState === NetworkStatus.SLOW_CONNECTION
-    ) {
-      setToastMessage(messageSlowConnection);
-      setToastColor(slowConnectionColor);
-      show();
-    }
+  const offset = position === "top" ? topOffset ?? defaultTopOffset() : bottomOffset;
+  const containerHeight = toastHeight + offset;
 
-    // Always schedule a dismiss when network is connected (or restored)
-    if (networkState === NetworkStatus.CONNECTED) {
-      const timeout = setTimeout(() => dismiss(), dismissTimeout);
-      return () => clearTimeout(timeout);
-    }
-  }, [networkState]);
+  const dismiss = useCallback(() => {
+    if (!mountedRef.current) return;
+    Animated.timing(animatedValue, {
+      toValue: 0,
+      duration: animationDuration,
+      useNativeDriver: true,
+    }).start(({ finished }) => {
+      if (finished) {
+        mountedRef.current = false;
+        setMounted(false);
+      }
+    });
+  }, [animatedValue, animationDuration]);
 
-  const show = () => {
-    InteractionManager.runAfterInteractions(() => {
+  const show = useCallback(
+    (message: string, color: string) => {
+      setToastMessage(message);
+      setToastColor(color);
+      mountedRef.current = true;
+      setMounted(true);
+      if (announceForAccessibility) {
+        AccessibilityInfo.announceForAccessibility?.(message);
+      }
       Animated.timing(animatedValue, {
         toValue: 1,
         duration: animationDuration,
-        useNativeDriver: false,
-      }).start(() => setShowToast(true));
-    });
-  };
+        useNativeDriver: true,
+      }).start();
+    },
+    [animatedValue, animationDuration, announceForAccessibility]
+  );
 
-  const dismiss = () => {
-    // Dismiss regardless of previous state if network is connected
-    if (networkState === NetworkStatus.CONNECTED) {
-      InteractionManager.runAfterInteractions(() => {
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration: animationDuration,
-          useNativeDriver: false,
-        }).start(() => setShowToast(false));
-      });
+  useEffect(() => {
+    if (status === prevStatus) return;
+
+    // Offline: show and persist until the connection comes back.
+    if (status === NetworkStatus.NO_CONNECTION) {
+      show(messageNoConnection, disconnectedColor);
+      return;
     }
-  };
 
-  const toastAnimateStyle = {
-    height: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, toastHeight],
-    }),
-    paddingTop: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, toastHeight / 2],
-    }),
-    marginBottom: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, -toastHeight],
-    }),
-    backgroundColor: animatedValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: ["transparent", toastColor],
-    }),
-  };
+    // Slow: show on any transition into the slow state, then auto-dismiss.
+    if (status === NetworkStatus.SLOW_CONNECTION) {
+      if (!showSlowConnection) {
+        dismiss();
+        return;
+      }
+      show(messageSlowConnection, slowConnectionColor);
+      const timeout = setTimeout(dismiss, dismissTimeout);
+      return () => clearTimeout(timeout);
+    }
 
-  if (!showToast) {
+    // Connected: announce recovery only after a real outage, then dismiss.
+    if (prevStatus === NetworkStatus.NO_CONNECTION) {
+      show(messageConnected, connectedColor);
+    }
+    const timeout = setTimeout(dismiss, dismissTimeout);
+    return () => clearTimeout(timeout);
+  }, [status]);
+
+  if (!mounted) {
     return null;
   }
 
+  const hiddenTranslate =
+    position === "top" ? -containerHeight : containerHeight;
+  const toastAnimatedStyle = {
+    transform: [
+      {
+        translateY: animatedValue.interpolate({
+          inputRange: [0, 1],
+          outputRange: [hiddenTranslate, 0],
+        }),
+      },
+    ],
+    opacity: animatedValue,
+  };
+  const placementStyle: ViewStyle =
+    position === "top"
+      ? { top: 0, paddingTop: offset }
+      : { bottom: 0, paddingBottom: offset };
+
   return (
-    <Animated.View style={[styles.toast, toastAnimateStyle, contentStyle]}>
-      <Text style={[styles.toastText, toastTextStyle]}>{toastMessage}</Text>
+    <Animated.View
+      pointerEvents="box-none"
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+      style={[
+        styles.toast,
+        placementStyle,
+        { height: containerHeight, backgroundColor: toastColor },
+        toastAnimatedStyle,
+        contentStyle,
+      ]}
+    >
+      {renderToast ? (
+        renderToast({ status, message: toastMessage, color: toastColor, dismiss })
+      ) : (
+        <Text style={[styles.toastText, toastTextStyle]}>{toastMessage}</Text>
+      )}
     </Animated.View>
   );
 };
@@ -143,7 +225,6 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
     right: 0,
-    top: 0,
     zIndex: 1000,
   },
   // eslint-disable-next-line react-native/no-color-literals
