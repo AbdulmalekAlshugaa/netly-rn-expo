@@ -40,91 +40,105 @@ var react_1 = __importStar(require("react"));
 var react_native_1 = require("react-native");
 var useNetworkStatus_1 = __importDefault(require("../hooks/useNetworkStatus"));
 var NetLy_1 = require("../constants/NetLy");
+var defaultTopOffset = function () { var _a; return react_native_1.Platform.OS === "ios" ? 59 : (_a = react_native_1.StatusBar.currentHeight) !== null && _a !== void 0 ? _a : 24; };
 var NetworkStatusToast = function (_a) {
-    var _b = _a.disconnectedColor, disconnectedColor = _b === void 0 ? "#F44336" : _b, // Default Red
-    _c = _a.connectedColor, // Default Red
-    connectedColor = _c === void 0 ? "#4CAF50" : _c, // Default Green
-    _d = _a.slowConnectionColor, // Default Green
-    slowConnectionColor = _d === void 0 ? "#FFC107" : _d, // Default Yellow
-    _e = _a.toastHeight, // Default Yellow
-    toastHeight = _e === void 0 ? 80 : _e, _f = _a.animationDuration, animationDuration = _f === void 0 ? 400 : _f, _g = _a.dismissTimeout, dismissTimeout = _g === void 0 ? 3000 : _g, _h = _a.messageNoConnection, messageNoConnection = _h === void 0 ? NetLy_1.connectionMessages.NO_CONNECTION : _h, _j = _a.messageConnected, messageConnected = _j === void 0 ? NetLy_1.connectionMessages.CONNECTED : _j, _k = _a.messageSlowConnection, messageSlowConnection = _k === void 0 ? NetLy_1.connectionMessages.SLOW_CONNECTION : _k, contentStyle = _a.contentStyle, toastTextStyle = _a.toastTextStyle, _l = _a.debug, debug = _l === void 0 ? false : _l, slowConnectionDuration = _a.slowConnectionDuration;
-    var _m = (0, useNetworkStatus_1.default)({ debug: debug, slowConnectionDuration: slowConnectionDuration }), networkState = _m[0], prevNetworkState = _m[1];
-    var _o = (0, react_1.useState)(false), showToast = _o[0], setShowToast = _o[1];
-    var _p = (0, react_1.useState)(""), toastMessage = _p[0], setToastMessage = _p[1];
-    var _q = (0, react_1.useState)(connectedColor), toastColor = _q[0], setToastColor = _q[1];
+    var _b = _a.position, position = _b === void 0 ? "top" : _b, topOffset = _a.topOffset, _c = _a.bottomOffset, bottomOffset = _c === void 0 ? 0 : _c, _d = _a.toastHeight, toastHeight = _d === void 0 ? 56 : _d, _e = _a.connectedColor, connectedColor = _e === void 0 ? "#4CAF50" : _e, _f = _a.disconnectedColor, disconnectedColor = _f === void 0 ? "#F44336" : _f, _g = _a.slowConnectionColor, slowConnectionColor = _g === void 0 ? "#FFC107" : _g, _h = _a.messageConnected, messageConnected = _h === void 0 ? NetLy_1.connectionMessages.CONNECTED : _h, _j = _a.messageNoConnection, messageNoConnection = _j === void 0 ? NetLy_1.connectionMessages.NO_CONNECTION : _j, _k = _a.messageSlowConnection, messageSlowConnection = _k === void 0 ? NetLy_1.connectionMessages.SLOW_CONNECTION : _k, _l = _a.showSlowConnection, showSlowConnection = _l === void 0 ? true : _l, _m = _a.animationDuration, animationDuration = _m === void 0 ? 300 : _m, _o = _a.dismissTimeout, dismissTimeout = _o === void 0 ? 3000 : _o, contentStyle = _a.contentStyle, toastTextStyle = _a.toastTextStyle, renderToast = _a.renderToast, _p = _a.announceForAccessibility, announceForAccessibility = _p === void 0 ? true : _p, pollInterval = _a.pollInterval, slowThreshold = _a.slowThreshold, slowSampleCount = _a.slowSampleCount, pingUrl = _a.pingUrl, debug = _a.debug, onStatusChange = _a.onStatusChange;
+    var _q = (0, useNetworkStatus_1.default)({
+        pollInterval: pollInterval,
+        slowThreshold: slowThreshold,
+        slowSampleCount: slowSampleCount,
+        pingUrl: pingUrl,
+        debug: debug,
+        onStatusChange: onStatusChange,
+    }), status = _q.status, prevStatus = _q.prevStatus;
+    var _r = (0, react_1.useState)(false), mounted = _r[0], setMounted = _r[1];
+    var mountedRef = (0, react_1.useRef)(false);
+    var _s = (0, react_1.useState)(""), toastMessage = _s[0], setToastMessage = _s[1];
+    var _t = (0, react_1.useState)(connectedColor), toastColor = _t[0], setToastColor = _t[1];
     var animatedValue = (0, react_1.useRef)(new react_native_1.Animated.Value(0)).current;
+    var offset = position === "top" ? topOffset !== null && topOffset !== void 0 ? topOffset : defaultTopOffset() : bottomOffset;
+    var containerHeight = toastHeight + offset;
+    var dismiss = (0, react_1.useCallback)(function () {
+        if (!mountedRef.current)
+            return;
+        react_native_1.Animated.timing(animatedValue, {
+            toValue: 0,
+            duration: animationDuration,
+            useNativeDriver: true,
+        }).start(function (_a) {
+            var finished = _a.finished;
+            if (finished) {
+                mountedRef.current = false;
+                setMounted(false);
+            }
+        });
+    }, [animatedValue, animationDuration]);
+    var show = (0, react_1.useCallback)(function (message, color) {
+        var _a;
+        setToastMessage(message);
+        setToastColor(color);
+        mountedRef.current = true;
+        setMounted(true);
+        if (announceForAccessibility) {
+            (_a = react_native_1.AccessibilityInfo.announceForAccessibility) === null || _a === void 0 ? void 0 : _a.call(react_native_1.AccessibilityInfo, message);
+        }
+        react_native_1.Animated.timing(animatedValue, {
+            toValue: 1,
+            duration: animationDuration,
+            useNativeDriver: true,
+        }).start();
+    }, [animatedValue, animationDuration, announceForAccessibility]);
     (0, react_1.useEffect)(function () {
-        // When network goes down
-        if (networkState === NetLy_1.NetworkStatus.NO_CONNECTION &&
-            networkState !== prevNetworkState) {
-            setToastMessage(messageNoConnection);
-            setToastColor(disconnectedColor);
-            show();
+        if (status === prevStatus)
+            return;
+        // Offline: show and persist until the connection comes back.
+        if (status === NetLy_1.NetworkStatus.NO_CONNECTION) {
+            show(messageNoConnection, disconnectedColor);
+            return;
         }
-        // When network is restored
-        else if (prevNetworkState === NetLy_1.NetworkStatus.NO_CONNECTION &&
-            networkState === NetLy_1.NetworkStatus.CONNECTED) {
-            setToastMessage(messageConnected);
-            setToastColor(connectedColor);
-            show();
-        }
-        // When network becomes slow
-        else if (prevNetworkState === NetLy_1.NetworkStatus.CONNECTED &&
-            networkState === NetLy_1.NetworkStatus.SLOW_CONNECTION) {
-            setToastMessage(messageSlowConnection);
-            setToastColor(slowConnectionColor);
-            show();
-        }
-        // Always schedule a dismiss when network is connected (or restored)
-        if (networkState === NetLy_1.NetworkStatus.CONNECTED) {
-            var timeout_1 = setTimeout(function () { return dismiss(); }, dismissTimeout);
+        // Slow: show on any transition into the slow state, then auto-dismiss.
+        if (status === NetLy_1.NetworkStatus.SLOW_CONNECTION) {
+            if (!showSlowConnection) {
+                dismiss();
+                return;
+            }
+            show(messageSlowConnection, slowConnectionColor);
+            var timeout_1 = setTimeout(dismiss, dismissTimeout);
             return function () { return clearTimeout(timeout_1); };
         }
-    }, [networkState]);
-    var show = function () {
-        react_native_1.InteractionManager.runAfterInteractions(function () {
-            react_native_1.Animated.timing(animatedValue, {
-                toValue: 1,
-                duration: animationDuration,
-                useNativeDriver: false,
-            }).start(function () { return setShowToast(true); });
-        });
-    };
-    var dismiss = function () {
-        // Dismiss regardless of previous state if network is connected
-        if (networkState === NetLy_1.NetworkStatus.CONNECTED) {
-            react_native_1.InteractionManager.runAfterInteractions(function () {
-                react_native_1.Animated.timing(animatedValue, {
-                    toValue: 0,
-                    duration: animationDuration,
-                    useNativeDriver: false,
-                }).start(function () { return setShowToast(false); });
-            });
+        // Connected: announce recovery only after a real outage, then dismiss.
+        if (prevStatus === NetLy_1.NetworkStatus.NO_CONNECTION) {
+            show(messageConnected, connectedColor);
         }
-    };
-    var toastAnimateStyle = {
-        height: animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, toastHeight],
-        }),
-        paddingTop: animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, toastHeight / 2],
-        }),
-        marginBottom: animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: [0, -toastHeight],
-        }),
-        backgroundColor: animatedValue.interpolate({
-            inputRange: [0, 1],
-            outputRange: ["transparent", toastColor],
-        }),
-    };
-    if (!showToast) {
+        var timeout = setTimeout(dismiss, dismissTimeout);
+        return function () { return clearTimeout(timeout); };
+    }, [status]);
+    if (!mounted) {
         return null;
     }
-    return (<react_native_1.Animated.View style={[styles.toast, toastAnimateStyle, contentStyle]}>
-      <react_native_1.Text style={[styles.toastText, toastTextStyle]}>{toastMessage}</react_native_1.Text>
+    var hiddenTranslate = position === "top" ? -containerHeight : containerHeight;
+    var toastAnimatedStyle = {
+        transform: [
+            {
+                translateY: animatedValue.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [hiddenTranslate, 0],
+                }),
+            },
+        ],
+        opacity: animatedValue,
+    };
+    var placementStyle = position === "top"
+        ? { top: 0, paddingTop: offset }
+        : { bottom: 0, paddingBottom: offset };
+    return (<react_native_1.Animated.View pointerEvents="box-none" accessibilityRole="alert" accessibilityLiveRegion="polite" style={[
+            styles.toast,
+            placementStyle,
+            { height: containerHeight, backgroundColor: toastColor },
+            toastAnimatedStyle,
+            contentStyle,
+        ]}>
+      {renderToast ? (renderToast({ status: status, message: toastMessage, color: toastColor, dismiss: dismiss })) : (<react_native_1.Text style={[styles.toastText, toastTextStyle]}>{toastMessage}</react_native_1.Text>)}
     </react_native_1.Animated.View>);
 };
 var styles = react_native_1.StyleSheet.create({
@@ -134,7 +148,6 @@ var styles = react_native_1.StyleSheet.create({
         left: 0,
         position: "absolute",
         right: 0,
-        top: 0,
         zIndex: 1000,
     },
     // eslint-disable-next-line react-native/no-color-literals
